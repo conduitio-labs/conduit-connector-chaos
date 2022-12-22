@@ -84,9 +84,13 @@ func (d *Destination) Teardown(ctx context.Context) error {
 }
 
 func (d *Destination) do(ctx context.Context, mode string) error {
-	pc, _, _, _ := runtime.Caller(1)
+	var callingFunc string
+	pc, _, _, ok := runtime.Caller(1)
 	details := runtime.FuncForPC(pc)
-	sdk.Logger(ctx).Info().Str("func", details.Name()).Str("mode", mode).Send()
+	if ok {
+		callingFunc = details.Name()
+	}
+	sdk.Logger(ctx).Info().Str("func", callingFunc).Str("mode", mode).Send()
 
 	switch mode {
 	case ModeSuccess:
