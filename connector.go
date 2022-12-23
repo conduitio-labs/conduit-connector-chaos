@@ -18,6 +18,6 @@ import sdk "github.com/conduitio/conduit-connector-sdk"
 
 var Connector = sdk.Connector{
 	NewSpecification: Specification,
-	NewSource:        nil, // no source
+	NewSource:        NewSource,
 	NewDestination:   NewDestination,
 }

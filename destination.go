@@ -18,9 +18,7 @@ package chaos
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"runtime"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
@@ -29,7 +27,9 @@ type Destination struct {
 	sdk.UnimplementedDestination
 
 	Config DestinationConfig
+
 	isOpen bool
+	chaos  Chaos
 }
 
 func NewDestination() sdk.Destination {
@@ -38,21 +38,14 @@ func NewDestination() sdk.Destination {
 
 type DestinationConfig struct {
 	// ConfigureMode controls what the Configure method should do.
-	ConfigureMode string `validate:"inclusion=success|error|block|panic" default:"success"`
+	ConfigureMode string `validate:"inclusion=success|error|block|context-done|panic" default:"success"`
 	// OpenMode controls what the Open method should do.
-	OpenMode string `validate:"inclusion=success|error|block|panic" default:"success"`
+	OpenMode string `validate:"inclusion=success|error|block|context-done|panic" default:"success"`
 	// WriteMode controls what the Write method should do.
-	WriteMode string `validate:"inclusion=success|error|block|panic" default:"success"`
+	WriteMode string `validate:"inclusion=success|error|block|context-done|panic" default:"success"`
 	// TeardownMode controls what the Teardown method should do.
-	TeardownMode string `validate:"inclusion=success|error|block|panic" default:"success"`
+	TeardownMode string `validate:"inclusion=success|error|block|context-done|panic" default:"success"`
 }
-
-const (
-	ModeSuccess = "success"
-	ModeError   = "error"
-	ModeBlock   = "block"
-	ModePanic   = "panic"
-)
 
 func (d *Destination) Parameters() map[string]sdk.Parameter {
 	return d.Config.Parameters()
@@ -63,46 +56,22 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 	if err != nil {
 		return fmt.Errorf("invalid config: %w", err)
 	}
-	return d.do(ctx, d.Config.ConfigureMode)
+	return d.chaos.Do(ctx, d.Config.ConfigureMode)
 }
 
 func (d *Destination) Open(ctx context.Context) error {
 	d.isOpen = true
-	return d.do(ctx, d.Config.OpenMode)
+	return d.chaos.Do(ctx, d.Config.OpenMode)
 }
 
 func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
-	return 0, d.do(ctx, d.Config.WriteMode)
+	return 0, d.chaos.Do(ctx, d.Config.WriteMode)
 }
 
 func (d *Destination) Teardown(ctx context.Context) error {
 	if d.isOpen {
 		// only do if connector is open, teardown also gets called when validating config
-		return d.do(ctx, d.Config.TeardownMode)
+		return d.chaos.Do(ctx, d.Config.TeardownMode)
 	}
 	return nil
-}
-
-func (d *Destination) do(ctx context.Context, mode string) error {
-	var callingFunc string
-	pc, _, _, ok := runtime.Caller(1)
-	details := runtime.FuncForPC(pc)
-	if ok {
-		callingFunc = details.Name()
-	}
-	sdk.Logger(ctx).Info().Str("func", callingFunc).Str("mode", mode).Send()
-
-	switch mode {
-	case ModeSuccess:
-		return nil
-	case ModeError:
-		return errors.New("chaos")
-	case ModeBlock:
-		<-make(chan struct{}) // block forever
-		return nil
-	case ModePanic:
-		panic("chaos")
-	default:
-		panic(fmt.Errorf("invalid mode: %v", mode))
-	}
 }
