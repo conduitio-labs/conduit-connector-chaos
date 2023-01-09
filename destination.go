@@ -65,7 +65,11 @@ func (d *Destination) Open(ctx context.Context) error {
 }
 
 func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
-	return 0, d.chaos.Do(ctx, d.Config.WriteMode)
+	err := d.chaos.Do(ctx, d.Config.WriteMode)
+	if err != nil {
+		return 0, err
+	}
+	return len(records), nil
 }
 
 func (d *Destination) Teardown(ctx context.Context) error {
