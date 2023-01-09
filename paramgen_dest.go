@@ -14,7 +14,7 @@ func (DestinationConfig) Parameters() map[string]sdk.Parameter {
 			Description: "configureMode controls what the Configure method should do.",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
-				sdk.ValidationInclusion{List: []string{"success", "error", "block", "panic"}},
+				sdk.ValidationInclusion{List: []string{"success", "error", "block", "context-done", "panic"}},
 			},
 		},
 		"openMode": {
@@ -22,7 +22,7 @@ func (DestinationConfig) Parameters() map[string]sdk.Parameter {
 			Description: "openMode controls what the Open method should do.",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
-				sdk.ValidationInclusion{List: []string{"success", "error", "block", "panic"}},
+				sdk.ValidationInclusion{List: []string{"success", "error", "block", "context-done", "panic"}},
 			},
 		},
 		"teardownMode": {
@@ -30,7 +30,7 @@ func (DestinationConfig) Parameters() map[string]sdk.Parameter {
 			Description: "teardownMode controls what the Teardown method should do.",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
-				sdk.ValidationInclusion{List: []string{"success", "error", "block", "panic"}},
+				sdk.ValidationInclusion{List: []string{"success", "error", "block", "context-done", "panic"}},
 			},
 		},
 		"writeMode": {
@@ -38,7 +38,7 @@ func (DestinationConfig) Parameters() map[string]sdk.Parameter {
 			Description: "writeMode controls what the Write method should do.",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
-				sdk.ValidationInclusion{List: []string{"success", "error", "block", "panic"}},
+				sdk.ValidationInclusion{List: []string{"success", "error", "block", "context-done", "panic"}},
 			},
 		},
 	}
