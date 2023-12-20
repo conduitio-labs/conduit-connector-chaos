@@ -62,7 +62,7 @@ func (d *Source) Configure(ctx context.Context, cfg map[string]string) error {
 	return d.chaos.Do(ctx, d.Config.ConfigureMode)
 }
 
-func (d *Source) Open(ctx context.Context, pos sdk.Position) error {
+func (d *Source) Open(ctx context.Context, _ sdk.Position) error {
 	d.isOpen = true
 	return d.chaos.Do(ctx, d.Config.OpenMode)
 }
@@ -85,7 +85,7 @@ func (d *Source) Read(ctx context.Context) (sdk.Record, error) {
 	), nil
 }
 
-func (d *Source) Ack(ctx context.Context, position sdk.Position) error {
+func (d *Source) Ack(ctx context.Context, _ sdk.Position) error {
 	return d.chaos.Do(ctx, d.Config.AckMode)
 }
 
