@@ -7,3 +7,13 @@ build:
 
 test:
 	go test $(GOTEST_FLAGS) -race ./...
+
+.PHONY: install-tools
+install-tools:
+	@echo Installing tools from tools.go
+	@go list -e -f '{{ join .Imports "\n" }}' tools.go | xargs -tI % go install %
+	@go mod tidy
+
+.PHONY: lint
+lint:
+	golangci-lint run -v
