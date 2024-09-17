@@ -46,6 +46,7 @@ func (c Chaos) Do(ctx context.Context, mode string) error {
 	case ModeSuccess:
 		return nil
 	case ModeError:
+		//nolint:err113 // this is a connector for special use
 		return errors.New("chaos")
 	case ModeBlock:
 		<-make(chan struct{}) // block forever
@@ -56,6 +57,7 @@ func (c Chaos) Do(ctx context.Context, mode string) error {
 		<-ctx.Done()
 		return ctx.Err()
 	default:
+		//nolint:err113 // this is a connector for special use
 		panic(fmt.Errorf("invalid mode: %v", mode))
 	}
 }

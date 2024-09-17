@@ -2,28 +2,10 @@ run:
   timeout: 5m
 
 linters-settings:
-  depguard:
-    rules:
-      Main:
-        deny:
-          - pkg: errors
-            desc: To accommodate for custom error creation and handling use Conduit's 'cerrors' package instead.
-          - pkg: golang.org/x/xerrors
-            desc: To accommodate for custom error creation and handling use Conduit's 'cerrors' package instead.
-          - pkg: github.com/golang/mock
-            desc: github.com/golang/mock is deprecated, use go.uber.org/mock instead.
-          - pkg: encoding/json
-            desc: github.com/goccy/go-json is preferred for performance reasons.
-  gofmt:
-    simplify: false
-  govet:
-    check-shadowing: false # TODO enable
   nolintlint:
     allow-unused: false # report any unused nolint directives
     require-explanation: true # require an explanation for nolint directives
     require-specific: true # require nolint directives to mention the specific linter being suppressed
-  gocyclo:
-    min-complexity: 20
   goconst:
     ignore-tests: true
   goheader:
@@ -31,110 +13,113 @@ linters-settings:
     values:
       regexp:
         copyright-year: 20[2-9]\d
-  revive:
-    rules:
-      - name: unused-parameter
-        disabled: true
+  wrapcheck:
+    ignoreSigs:
+      - .Errorf(
+      - errors.New(
+      - errors.Unwrap(
+      - errors.Join(
+      - .Wrap(
+      - .Wrapf(
+      - .WithMessage(
+      - .WithMessagef(
+      - .WithStack(
+      - (context.Context).Err()
 
 issues:
-  exclude-dirs-use-default: false
-  exclude-dirs:
-    - ^examples/
-    - ^ui/
-    - ^pkg/plugin/processor/builtin/internal/diff # external code
-
   exclude-rules:
-    - path: 'pkg/plugin/processor/builtin/impl'
-      linters:
-        - goconst
-    - path: '(.+)acceptance_testing\.go'
-      linters:
-        - stylecheck
-      text: "ST1003: should not use underscores in Go names"
-    # Exclude some linters from running on tests files.
     - path: _test\.go
       linters:
         - dogsled
         - gosec
+        - gocognit
+        - errcheck
+        - forcetypeassert
+        - funlen
+        - err113
+        - dupl
+        - maintidx
 
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
   # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
   enable:
-    # We plan to enable all linters that are commented out.
-    # However, we want to enable them one by one (so we don't have to fix many issues at once).
+    - asasalint
+    - asciicheck
+    - bidichk
     - bodyclose
-    - depguard
+    - containedctx
+    - contextcheck
+    - copyloopvar
+    - decorder
+    # - depguard
     - dogsled
+    - dupl
+    - dupword
     - durationcheck
     - errcheck
+    - errchkjson
     - errname
-    # - errorlint
+    - errorlint
     - exhaustive
-    # - exhaustivestruct
-    - copyloopvar
     # - forbidigo
-    # - forcetypeassert
-    # - funlen
-    # - gochecknoinits
+    - forcetypeassert
+    - funlen
+    - gci
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gochecknoinits
+    - gocognit
     - goconst
     - gocritic
-    - gocyclo
-    # - cyclop # not interested in package complexities at the moment
-    # - godot
+    - godot
+    - err113
     - gofmt
     - gofumpt
     - goheader
     - goimports
-    - revive
-    # - gomnd
     - gomoddirectives
-    - gomodguard
     - goprintffuncname
     - gosec
     - gosimple
+    - gosmopolitan
     - govet
-    # - ifshort
+    - grouper
+    - importas
     - ineffassign
-    # - importas
-    # - lll
-    # - misspell
+    - interfacebloat
+    # - ireturn # Doesn't have correct support for generic types https://github.com/butuzov/ireturn/issues/37
+    - loggercheck
+    - maintidx
     - makezero
-    # - nakedret
-    # - nilerr
-    # - nilnil
-    # - nlreturn
+    - mirror
+    - misspell
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
     - noctx
     - nolintlint
-    # - paralleltest
+    - nosprintfhostport
+    - prealloc
     - predeclared
+    - promlinter
+    - reassign
+    - revive
     - rowserrcheck
+    - sqlclosecheck
     - staticcheck
     - stylecheck
-    - sqlclosecheck
-    # - tagliatelle
-    # - tenv
-    # - thelper
-    # - tparallel
-    - typecheck
+    - tenv
+    - testableexamples
+    - thelper
     - unconvert
-    # - unparam
+    - unparam
     - unused
+    - usestdlibvars
     - wastedassign
     - whitespace
-  # - wrapcheck
-  # - wsl
-
-  # don't enable:
-  # - asciicheck
-  # - dupl
-  # - gochecknoglobals
-  # - gocognit
-  # - godox
-  # - goerr113
-  # - maligned
-  # - nestif
-  # - prealloc
-  # - testpackage
-  # - wsl
+    - wrapcheck
+    - zerologlint
