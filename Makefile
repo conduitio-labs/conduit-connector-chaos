@@ -17,3 +17,13 @@ install-tools:
 .PHONY: lint
 lint:
 	golangci-lint run -v
+
+.PHONY: fmt
+fmt:
+	gofumpt -l -w .
+	gci write --skip-generated  .
+
+.PHONY: generate
+generate:
+	go generate ./...
+

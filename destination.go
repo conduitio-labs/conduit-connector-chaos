@@ -20,6 +20,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/conduitio/conduit-commons/config"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -47,12 +49,12 @@ type DestinationConfig struct {
 	TeardownMode string `validate:"inclusion=success|error|block|context-done|panic" default:"success"`
 }
 
-func (d *Destination) Parameters() map[string]sdk.Parameter {
+func (d *Destination) Parameters() config.Parameters {
 	return d.Config.Parameters()
 }
 
-func (d *Destination) Configure(ctx context.Context, cfg map[string]string) error {
-	err := sdk.Util.ParseConfig(cfg, &d.Config)
+func (d *Destination) Configure(ctx context.Context, cfg config.Config) error {
+	err := sdk.Util.ParseConfig(ctx, cfg, &d.Config, NewDestination().Parameters())
 	if err != nil {
 		return fmt.Errorf("invalid config: %w", err)
 	}
@@ -64,7 +66,7 @@ func (d *Destination) Open(ctx context.Context) error {
 	return d.chaos.Do(ctx, d.Config.OpenMode)
 }
 
-func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
+func (d *Destination) Write(ctx context.Context, records []opencdc.Record) (int, error) {
 	err := d.chaos.Do(ctx, d.Config.WriteMode)
 	if err != nil {
 		return 0, err
