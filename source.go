@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/conduitio/conduit-commons/config"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -50,42 +52,42 @@ type SourceConfig struct {
 	TeardownMode string `validate:"inclusion=success|error|context-done|block|panic" default:"success"`
 }
 
-func (d *Source) Parameters() map[string]sdk.Parameter {
+func (d *Source) Parameters() config.Parameters {
 	return d.Config.Parameters()
 }
 
-func (d *Source) Configure(ctx context.Context, cfg map[string]string) error {
-	err := sdk.Util.ParseConfig(cfg, &d.Config)
+func (d *Source) Configure(ctx context.Context, cfg config.Config) error {
+	err := sdk.Util.ParseConfig(ctx, cfg, &d.Config, NewSource().Parameters())
 	if err != nil {
 		return fmt.Errorf("invalid config: %w", err)
 	}
 	return d.chaos.Do(ctx, d.Config.ConfigureMode)
 }
 
-func (d *Source) Open(ctx context.Context, _ sdk.Position) error {
+func (d *Source) Open(ctx context.Context, _ opencdc.Position) error {
 	d.isOpen = true
 	return d.chaos.Do(ctx, d.Config.OpenMode)
 }
 
-func (d *Source) Read(ctx context.Context) (sdk.Record, error) {
+func (d *Source) Read(ctx context.Context) (opencdc.Record, error) {
 	err := d.chaos.Do(ctx, d.Config.ReadMode)
 	if err != nil {
-		return sdk.Record{}, err
+		return opencdc.Record{}, err
 	}
 	if ctx.Err() != nil {
 		// TODO add mode that doesn't care about context closing
-		return sdk.Record{}, ctx.Err()
+		return opencdc.Record{}, ctx.Err()
 	}
 	time.Sleep(time.Second)
 	return sdk.Util.Source.NewRecordCreate(
 		[]byte("chaos-position"),
-		sdk.Metadata{"chaos.readMode": d.Config.ReadMode},
-		sdk.RawData("chaos-key"),
-		sdk.RawData("chaos-payload"),
+		opencdc.Metadata{"chaos.readMode": d.Config.ReadMode},
+		opencdc.RawData("chaos-key"),
+		opencdc.RawData("chaos-payload"),
 	), nil
 }
 
-func (d *Source) Ack(ctx context.Context, _ sdk.Position) error {
+func (d *Source) Ack(ctx context.Context, _ opencdc.Position) error {
 	return d.chaos.Do(ctx, d.Config.AckMode)
 }
 
