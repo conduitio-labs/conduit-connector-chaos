@@ -2,7 +2,28 @@ version: "1.0"
 specification:
   name: chaos
   summary: A chaos destination connector
-  description: ""
+  description: |-
+    A [Conduit](https://conduit.io) connector that can be configured to behave in
+    unexpected ways to figure out how Conduit handles it.
+    
+    ## Modes
+
+    Each method of the connector can be configured to act in a certain way.
+    Currently supported modes are:
+
+    - `success` - The connector method acts as expected (returns successfully).
+    - `error` - The connector method returns an error with the message "chaos".
+    - `block` - The connector method blocks forever and never returns.
+    - `context-done` - The connector method blocks until the supplied context is
+      closed, after that it returns the context error.
+    - `panic` - The connector method panics.
+    
+    Each source and destination method can be configured to act as described in one
+    of the modes above. For a list of methods and their descriptions see the [
+    `sdk.Source`](https://pkg.go.dev/github.com/conduitio/conduit-connector-sdk#Source)
+    and [
+    `sdk.Destination`](https://pkg.go.dev/github.com/conduitio/conduit-connector-sdk#Destination)
+    interfaces.
   version: (devel)
   author: Meroxa, Inc.
   source:
