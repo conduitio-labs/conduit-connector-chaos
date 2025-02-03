@@ -1,0 +1,7 @@
+version: "1.0"
+specification:
+    name: chaos
+    summary: A chaos destination connector
+    description: ""
+    version: ""
+    author: Meroxa, Inc.
