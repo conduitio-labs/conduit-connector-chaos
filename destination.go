@@ -12,33 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:generate paramgen -output=paramgen_dest.go DestinationConfig
-
 package chaos
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/conduitio/conduit-commons/config"
 	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
-type Destination struct {
-	sdk.UnimplementedDestination
-
-	Config DestinationConfig
-
-	isOpen bool
-	chaos  Chaos
-}
-
-func NewDestination() sdk.Destination {
-	return &Destination{}
-}
-
 type DestinationConfig struct {
+	sdk.DefaultDestinationMiddleware
+
 	// ConfigureMode controls what the Configure method should do.
 	ConfigureMode string `validate:"inclusion=success|error|block|context-done|panic" default:"success"`
 	// OpenMode controls what the Open method should do.
@@ -49,25 +34,34 @@ type DestinationConfig struct {
 	TeardownMode string `validate:"inclusion=success|error|block|context-done|panic" default:"success"`
 }
 
-func (d *Destination) Parameters() config.Parameters {
-	return d.Config.Parameters()
+func (c *DestinationConfig) Validate(ctx context.Context) error {
+	return Chaos{}.Do(ctx, c.ConfigureMode)
 }
 
-func (d *Destination) Configure(ctx context.Context, cfg config.Config) error {
-	err := sdk.Util.ParseConfig(ctx, cfg, &d.Config, NewDestination().Parameters())
-	if err != nil {
-		return fmt.Errorf("invalid config: %w", err)
-	}
-	return d.chaos.Do(ctx, d.Config.ConfigureMode)
+type Destination struct {
+	sdk.UnimplementedDestination
+
+	config DestinationConfig
+
+	isOpen bool
+	chaos  Chaos
+}
+
+func NewDestination() sdk.Destination {
+	return &Destination{}
+}
+
+func (d *Destination) Config() sdk.DestinationConfig {
+	return &d.config
 }
 
 func (d *Destination) Open(ctx context.Context) error {
 	d.isOpen = true
-	return d.chaos.Do(ctx, d.Config.OpenMode)
+	return d.chaos.Do(ctx, d.config.OpenMode)
 }
 
 func (d *Destination) Write(ctx context.Context, records []opencdc.Record) (int, error) {
-	err := d.chaos.Do(ctx, d.Config.WriteMode)
+	err := d.chaos.Do(ctx, d.config.WriteMode)
 	if err != nil {
 		return 0, err
 	}
@@ -77,7 +71,7 @@ func (d *Destination) Write(ctx context.Context, records []opencdc.Record) (int,
 func (d *Destination) Teardown(ctx context.Context) error {
 	if d.isOpen {
 		// only do if connector is open, teardown also gets called when validating config
-		return d.chaos.Do(ctx, d.Config.TeardownMode)
+		return d.chaos.Do(ctx, d.config.TeardownMode)
 	}
 	return nil
 }

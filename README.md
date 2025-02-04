@@ -1,15 +1,8 @@
 # Conduit Connector Chaos
 
+<!-- readmegen:description -->
 A [Conduit](https://conduit.io) connector that can be configured to behave in
 unexpected ways to figure out how Conduit handles it.
-
-## How to build?
-
-Run `make build` to build the connector.
-
-## Testing
-
-Run `make test` to run all the unit tests.
 
 ## Modes
 
@@ -23,41 +16,143 @@ Currently supported modes are:
   closed, after that it returns the context error.
 - `panic` - The connector method panics.
 
-## Source
+Each source and destination method can be configured to act as described in one
+of the modes above. For a list of methods and their descriptions see the [
+`sdk.Source`](https://pkg.go.dev/github.com/conduitio/conduit-connector-sdk#Source)
+and [
+`sdk.Destination`](https://pkg.go.dev/github.com/conduitio/conduit-connector-sdk#Destination)
+interfaces.<!-- /readmegen:description -->
 
-Each source method can be configured to act as described in one of the
-[modes](#Modes).
+### Source Configuration Parameters
 
-For a list of methods and their descriptions
-see [`sdk.Source` interface](https://pkg.go.dev/github.com/conduitio/conduit-connector-sdk#Source)
-. Note that the behavior of `Parameters` can't be adjusted, because that method
-is called before the connector receives the configuration.
+<!-- readmegen:source.parameters.yaml -->
+```yaml
+version: 2.2
+pipelines:
+  - id: example
+    status: running
+    connectors:
+      - id: example
+        plugin: "chaos"
+        settings:
+          # AckMode controls what the Ack method should do.
+          # Type: string
+          ackMode: "success"
+          # ConfigureMode controls what the Configure method should do.
+          # Type: string
+          configureMode: "success"
+          # OpenMode controls what the Open method should do.
+          # Type: string
+          openMode: "success"
+          # ReadMode controls what the Read method should do.
+          # Type: string
+          readMode: "success"
+          # TeardownMode controls what the Teardown method should do.
+          # Type: string
+          teardownMode: "success"
+          # Maximum delay before an incomplete batch is read from the source.
+          # Type: duration
+          sdk.batch.delay: "0"
+          # Maximum size of batch before it gets read from the source.
+          # Type: int
+          sdk.batch.size: "0"
+          # Specifies whether to use a schema context name. If set to false, no
+          # schema context name will be used, and schemas will be saved with the
+          # subject name specified in the connector (not safe because of name
+          # conflicts).
+          # Type: bool
+          sdk.schema.context.enabled: "true"
+          # Schema context name to be used. Used as a prefix for all schema
+          # subject names. If empty, defaults to the connector ID.
+          # Type: string
+          sdk.schema.context.name: ""
+          # Whether to extract and encode the record key with a schema.
+          # Type: bool
+          sdk.schema.extract.key.enabled: "true"
+          # The subject of the key schema. If the record metadata contains the
+          # field "opencdc.collection" it is prepended to the subject name and
+          # separated with a dot.
+          # Type: string
+          sdk.schema.extract.key.subject: "key"
+          # Whether to extract and encode the record payload with a schema.
+          # Type: bool
+          sdk.schema.extract.payload.enabled: "true"
+          # The subject of the payload schema. If the record metadata contains
+          # the field "opencdc.collection" it is prepended to the subject name
+          # and separated with a dot.
+          # Type: string
+          sdk.schema.extract.payload.subject: "payload"
+          # The type of the payload schema.
+          # Type: string
+          sdk.schema.extract.type: "avro"
+```
+<!-- /readmegen:source.parameters.yaml -->
 
-### Configuration
+## Destination Configuration Parameters
 
-| name            | description                                           | required | default value |
-|-----------------|-------------------------------------------------------|----------|---------------|
-| `configureMode` | Controls the mode that the Configure method executes. | false    | success       |
-| `openMode`      | Controls the mode that the Open method executes.      | false    | success       |
-| `readMode`      | Controls the mode that the Read method executes.      | false    | success       |
-| `ackMode`       | Controls the mode that the Ack method executes.       | false    | success       |
-| `teardownMode`  | Controls the mode that the Teardown method executes.  | false    | success       |
+<!-- readmegen:destination.parameters.yaml -->
+```yaml
+version: 2.2
+pipelines:
+  - id: example
+    status: running
+    connectors:
+      - id: example
+        plugin: "chaos"
+        settings:
+          # ConfigureMode controls what the Configure method should do.
+          # Type: string
+          configureMode: "success"
+          # OpenMode controls what the Open method should do.
+          # Type: string
+          openMode: "success"
+          # TeardownMode controls what the Teardown method should do.
+          # Type: string
+          teardownMode: "success"
+          # WriteMode controls what the Write method should do.
+          # Type: string
+          writeMode: "success"
+          # Maximum delay before an incomplete batch is written to the
+          # destination.
+          # Type: duration
+          sdk.batch.delay: "0"
+          # Maximum size of batch before it gets written to the destination.
+          # Type: int
+          sdk.batch.size: "0"
+          # Allow bursts of at most X records (0 or less means that bursts are
+          # not limited). Only takes effect if a rate limit per second is set.
+          # Note that if `sdk.batch.size` is bigger than `sdk.rate.burst`, the
+          # effective batch size will be equal to `sdk.rate.burst`.
+          # Type: int
+          sdk.rate.burst: "0"
+          # Maximum number of records written per second (0 means no rate
+          # limit).
+          # Type: float
+          sdk.rate.perSecond: "0"
+          # The format of the output record. See the Conduit documentation for a
+          # full list of supported formats
+          # (https://conduit.io/docs/using/connectors/configuration-parameters/output-format).
+          # Type: string
+          sdk.record.format: "opencdc/json"
+          # Options to configure the chosen output record format. Options are
+          # normally key=value pairs separated with comma (e.g.
+          # opt1=val2,opt2=val2), except for the `template` record format, where
+          # options are a Go template.
+          # Type: string
+          sdk.record.format.options: ""
+          # Whether to extract and decode the record key with a schema.
+          # Type: bool
+          sdk.schema.extract.key.enabled: "true"
+          # Whether to extract and decode the record payload with a schema.
+          # Type: bool
+          sdk.schema.extract.payload.enabled: "true"
+```
+<!-- /readmegen:destination.parameters.yaml -->
 
-## Destination
+## How to build?
 
-Each destination method can be configured to act as described in one of the
-[modes](#Modes).
+Run `make build` to build the connector.
 
-For a list of methods and their descriptions
-see [`sdk.Destination` interface](https://pkg.go.dev/github.com/conduitio/conduit-connector-sdk#Destination)
-. Note that the behavior of `Parameters` can't be adjusted, because that method
-is called before the connector receives the configuration.
+## Testing
 
-### Configuration
-
-| name            | description                                           | required | default value |
-|-----------------|-------------------------------------------------------|----------|---------------|
-| `configureMode` | Controls the mode that the Configure method executes. | false    | success       |
-| `openMode`      | Controls the mode that the Open method executes.      | false    | success       |
-| `writeMode`     | Controls the mode that the Write method executes.     | false    | success       |
-| `teardownMode`  | Controls the mode that the Teardown method executes.  | false    | success       |
+Run `make test` to run all the unit tests.
